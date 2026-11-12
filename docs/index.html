@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Semantic TextNavigator · Проверка договоров</title>
+  <link rel="stylesheet" href="styles.css">
+  <script defer src="navigator.js"></script>
+  <script defer src="app.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="shell topbar-inner">
+      <div class="brand"><span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span> Semantic TextNavigator</div>
+      <span class="privacy"><span aria-hidden="true"></span> Файлы обрабатываются локально</span>
+    </div>
+  </header>
+
+  <main class="shell">
+    <section class="intro" aria-labelledby="page-title">
+      <div>
+        <h1 id="page-title">Проверка договоров поставки</h1>
+        <p>Сверяйте суммы и сроки поставки по цитатам из документов.</p>
+      </div>
+      <div class="upload-area">
+        <button type="button" class="secondary" id="demo" hidden>Учебный пример</button>
+        <button type="button" class="primary" id="upload"><span aria-hidden="true">↑</span> Загрузить TXT</button>
+        <input type="file" id="files" accept=".txt,text/plain" multiple hidden>
+        <p id="upload-status" role="status"></p>
+      </div>
+    </section>
+
+    <div class="workspace">
+      <section class="card terms" aria-labelledby="terms-title">
+        <div class="card-heading">
+          <div><h2 id="terms-title">Условия договоров</h2><p id="counts" role="status">Комплект не загружен</p></div>
+          <label class="date-control">Дата проверки
+            <input type="date" id="as-of" value="2026-03-10" min="0001-01-01" max="9999-12-31" required>
+          </label>
+        </div>
+        <div id="errors" class="notice" hidden></div>
+        <div id="empty" class="empty">
+          <span class="paper" aria-hidden="true"><i></i><i></i><i></i></span>
+          <h3>Загрузите комплект документов</h3>
+          <p>Выберите несколько TXT-файлов в кодировке UTF-8.<br><span id="example-hint">Учебный комплект находится в папке <code>documents</code>.</span></p>
+        </div>
+        <div id="results" hidden>
+          <div class="filters">
+            <label class="search">Договор или поставщик
+              <input type="search" id="search" placeholder="Номер договора или название">
+            </label>
+            <div class="deadline-filter">
+              <label class="check"><input type="checkbox" id="filter-on"> Поставка раньше</label>
+              <input type="date" id="before" value="2026-04-01" min="0001-01-01" max="9999-12-31" aria-label="Поставка раньше этой даты" disabled>
+            </div>
+          </div>
+          <p class="notice" id="document-issues" role="status" hidden></p>
+          <p class="notice" id="review-summary" role="status" hidden></p>
+          <div class="table-region" tabindex="0" role="region" aria-label="Таблица условий договоров">
+            <table role="table">
+              <thead role="rowgroup"><tr role="row">
+                <th scope="col" role="columnheader">Договор / поставщик</th>
+                <th scope="col" role="columnheader">Сумма</th>
+                <th scope="col" role="columnheader">Срок поставки</th>
+                <th scope="col" role="columnheader">Несогласованные изменения</th>
+              </tr></thead>
+              <tbody id="contracts" role="rowgroup"></tbody>
+            </table>
+          </div>
+          <p class="no-rows" id="no-rows" hidden></p>
+        </div>
+      </section>
+
+      <aside class="card evidence" aria-labelledby="evidence-title">
+        <div class="card-heading"><div><h2 id="evidence-title" tabindex="-1">Источник</h2><p>Цитата и исходный абзац</p></div></div>
+        <div id="source-empty" class="source-empty">
+          <span class="quote-icon" aria-hidden="true">“</span>
+          <p>Выберите значение в таблице или документ из комплекта.</p>
+        </div>
+        <div id="source" hidden>
+          <div class="source-context">
+            <p id="source-topic" class="source-topic"></p>
+            <p id="source-note" class="source-note" hidden></p>
+            <div id="source-options" class="source-options"></div>
+            <div class="source-meta"><strong id="source-name"></strong><span id="source-lines"></span></div>
+            <blockquote id="source-quote"></blockquote>
+            <button type="button" class="jump" id="jump">Перейти к абзацу <span aria-hidden="true">↓</span></button>
+          </div>
+          <div class="original-heading">Текст документа</div>
+          <div class="original" id="original" role="region" aria-label="Исходный текст документа" tabindex="0"></div>
+        </div>
+      </aside>
+    </div>
+
+    <details id="document-list" class="card documents" hidden>
+      <summary><span>Документы комплекта</span><span id="file-count" class="count"></span></summary>
+      <ul id="document-items"></ul>
+    </details>
+  </main>
+</body>
+</html>
