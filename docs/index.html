@@ -5,50 +5,49 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light">
   <title>Semantic TextNavigator · Проверка договоров</title>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css?v=2">
   <script defer src="navigator.js"></script>
-  <script defer src="app.js"></script>
+  <script defer src="app.js?v=2"></script>
 </head>
 <body>
   <header class="topbar">
     <div class="shell topbar-inner">
-      <div class="brand"><span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span> Semantic TextNavigator</div>
-      <span class="privacy"><span aria-hidden="true"></span> Файлы обрабатываются локально</span>
+      <div class="brand">Semantic TextNavigator</div>
+      <span class="privacy">Файлы обрабатываются в браузере</span>
     </div>
   </header>
 
   <main class="shell">
     <section class="intro" aria-labelledby="page-title">
       <div>
-        <h1 id="page-title">Проверка договоров поставки</h1>
-        <p>Сверяйте суммы и сроки поставки по цитатам из документов.</p>
+        <h1 id="page-title">Сверка условий поставки</h1>
+        <p>Действующие суммы и сроки на выбранную дату</p>
       </div>
       <div class="upload-area">
+        <button type="button" class="primary" id="upload">Загрузить TXT</button>
         <button type="button" class="secondary" id="demo" hidden>Учебный пример</button>
-        <button type="button" class="primary" id="upload"><span aria-hidden="true">↑</span> Загрузить TXT</button>
         <input type="file" id="files" accept=".txt,text/plain" multiple hidden>
         <p id="upload-status" role="status"></p>
       </div>
     </section>
 
     <div class="workspace">
-      <section class="card terms" aria-labelledby="terms-title">
+      <section class="terms" aria-labelledby="terms-title">
         <div class="card-heading">
-          <div><h2 id="terms-title">Условия договоров</h2><p id="counts" role="status">Комплект не загружен</p></div>
+          <div><h2 id="terms-title">Реестр договоров</h2><p id="counts" role="status">Комплект не загружен</p></div>
           <label class="date-control">Дата проверки
             <input type="date" id="as-of" value="2026-03-10" min="0001-01-01" max="9999-12-31" required>
           </label>
         </div>
         <div id="errors" class="notice" hidden></div>
         <div id="empty" class="empty">
-          <span class="paper" aria-hidden="true"><i></i><i></i><i></i></span>
           <h3>Загрузите комплект документов</h3>
           <p>Выберите несколько TXT-файлов в кодировке UTF-8.<br><span id="example-hint">Учебный комплект находится в папке <code>documents</code>.</span></p>
         </div>
         <div id="results" hidden>
           <div class="filters">
             <label class="search">Договор или поставщик
-              <input type="search" id="search" placeholder="Номер договора или название">
+              <input type="search" id="search" placeholder="Номер или название">
             </label>
             <div class="deadline-filter">
               <label class="check"><input type="checkbox" id="filter-on"> Поставка раньше</label>
@@ -60,9 +59,9 @@
           <div class="table-region" tabindex="0" role="region" aria-label="Таблица условий договоров">
             <table role="table">
               <thead role="rowgroup"><tr role="row">
-                <th scope="col" role="columnheader">Договор / поставщик</th>
-                <th scope="col" role="columnheader">Сумма</th>
-                <th scope="col" role="columnheader">Срок поставки</th>
+                <th scope="col" role="columnheader">Договор и поставщик</th>
+                <th scope="col" role="columnheader" class="value-heading">Сумма</th>
+                <th scope="col" role="columnheader" class="value-heading">Срок поставки</th>
                 <th scope="col" role="columnheader">Несогласованные изменения</th>
               </tr></thead>
               <tbody id="contracts" role="rowgroup"></tbody>
@@ -72,11 +71,10 @@
         </div>
       </section>
 
-      <aside class="card evidence" aria-labelledby="evidence-title">
-        <div class="card-heading"><div><h2 id="evidence-title" tabindex="-1">Источник</h2><p>Цитата и исходный абзац</p></div></div>
+      <aside class="evidence" aria-labelledby="evidence-title">
+        <div class="card-heading"><h2 id="evidence-title" tabindex="-1">Первоисточник</h2></div>
         <div id="source-empty" class="source-empty">
-          <span class="quote-icon" aria-hidden="true">“</span>
-          <p>Выберите значение в таблице или документ из комплекта.</p>
+          <p>Нажмите сумму, срок или предложение в реестре, чтобы сверить цитату с документом.</p>
         </div>
         <div id="source" hidden>
           <div class="source-context">
@@ -85,18 +83,18 @@
             <div id="source-options" class="source-options"></div>
             <div class="source-meta"><strong id="source-name"></strong><span id="source-lines"></span></div>
             <blockquote id="source-quote"></blockquote>
-            <button type="button" class="jump" id="jump">Перейти к абзацу <span aria-hidden="true">↓</span></button>
+            <button type="button" class="jump" id="jump">Перейти к абзацу</button>
           </div>
           <div class="original-heading">Текст документа</div>
           <div class="original" id="original" role="region" aria-label="Исходный текст документа" tabindex="0"></div>
         </div>
       </aside>
-    </div>
 
-    <details id="document-list" class="card documents" hidden>
-      <summary><span>Документы комплекта</span><span id="file-count" class="count"></span></summary>
-      <ul id="document-items"></ul>
-    </details>
+      <details id="document-list" class="documents" hidden>
+        <summary><span>Документы комплекта</span><span id="file-count" class="count"></span></summary>
+        <ul id="document-items"></ul>
+      </details>
+    </div>
   </main>
 </body>
 </html>

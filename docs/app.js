@@ -15,7 +15,7 @@ const demoFiles = [
   "01_contract.txt", "02_amendment_signed.txt", "03_contract.txt",
   "04_contract.txt", "05_supplier_email.txt", "06_amendment_draft.txt"
 ];
-const state = { files: [], report: null, upload: 0, currentBlock: null };
+const state = { files: [], report: null, upload: 0, currentBlock: null, selection: null };
 
 function element(tag, className, content) {
   const node = document.createElement(tag);
@@ -41,6 +41,8 @@ function labelValue(name, term) {
 }
 
 function clearSource() {
+  state.selection?.control.setAttribute("aria-pressed", "false");
+  state.selection = null;
   byId("source").hidden = true;
   byId("source-empty").hidden = false;
   state.currentBlock = null;
@@ -79,7 +81,7 @@ function openSource(refs, topic, note = "") {
   const options = byId("source-options");
   const controls = choices.length > 1 ? choices.map((ref, index) => {
     const doc = state.report.documents[ref.doc];
-    const control = button(`Фрагмент ${index + 1} · ${doc.name} · строка ${doc.blocks[ref.block].start}`, "source-option", () => {
+    const control = button(`${doc.name} · строка ${doc.blocks[ref.block].start}`, "source-option", () => {
       for (const sibling of options.children) sibling.setAttribute("aria-pressed", String(sibling === control));
       renderSource(ref);
     });
@@ -93,6 +95,21 @@ function openSource(refs, topic, note = "") {
   heading.focus({ preventScroll: true });
   const rect = heading.getBoundingClientRect();
   if (rect.top < 0 || rect.bottom > window.innerHeight) heading.scrollIntoView({ block: "start" });
+}
+
+function evidenceButton(label, className, refs, topic, note = "") {
+  const key = JSON.stringify([topic, refs]);
+  const control = button(label, className, () => {
+    state.selection?.control.setAttribute("aria-pressed", "false");
+    state.selection = { key, control };
+    control.setAttribute("aria-pressed", "true");
+    openSource(refs, topic, note);
+  });
+  const selected = state.selection?.key === key;
+  control.setAttribute("aria-pressed", String(selected));
+  control.setAttribute("aria-controls", "source");
+  if (selected) state.selection.control = control;
+  return control;
 }
 
 function labeledCell(className, title) {
@@ -109,13 +126,12 @@ function termCell(row, name) {
   const cell = labeledCell("term-cell", fieldLabels[name]);
   const label = labelValue(name, term);
   if (term.sources.length) {
-    const control = button(label, `term-link ${term.state}`, () => {
-      const note = [term.amended ? "Условие установлено допсоглашением." : "", term.note].filter(Boolean).join(" ");
-      openSource(term.sources, `${row.id} · ${fieldLabels[name]}`, note);
-    });
+    const note = [term.amended ? "Условие установлено допсоглашением." : "", term.note].filter(Boolean).join(" ");
+    const control = evidenceButton(label, `term-link ${term.state}`, term.sources,
+      `${row.id} · ${fieldLabels[name]}`, note);
     control.setAttribute("aria-label", `${row.id}, ${fieldLabels[name].toLowerCase()}: ${label}. Открыть источник`);
     cell.append(control);
-    cell.append(element("span", "term-detail", term.amended ? "Допсоглашение" : "Открыть источник"));
+    if (term.amended) cell.append(element("span", "term-detail", "По допсоглашению"));
   } else {
     cell.append(element("span", "missing", label));
   }
@@ -133,16 +149,14 @@ function proposalCell(row) {
     const proposedFields = Object.keys(fieldLabels).filter(name =>
       doc.terms[name].state !== "missing" || doc.terms[name].sources.length
     );
-    group.append(button(documentLabels[doc.kind], "proposal-link", () => openSource(
+    group.append(evidenceButton(documentLabels[doc.kind], "proposal-link",
       [doc.statusSource, ...proposedFields.flatMap(name => doc.terms[name].sources)],
-      `${row.id} · ${documentLabels[doc.kind]}`, "Предложение не меняет действующие условия."
-    )));
+      `${row.id} · ${documentLabels[doc.kind]}`, "Предложение ожидает согласования."));
     for (const name of proposedFields) {
       const term = doc.terms[name];
       const label = term.state === "value" ? labelValue(name, term) : "требуется проверка";
-      group.append(button(`${fieldLabels[name]} · ${label}`, "proposal-value", () => openSource(
-        [...term.sources, doc.statusSource], `${row.id} · предложенное условие`, term.note
-      )));
+      group.append(evidenceButton(`${fieldLabels[name]} · ${label}`, "proposal-value",
+        [...term.sources, doc.statusSource], `${row.id} · предложенное условие`, term.note));
     }
     cell.append(group);
   }
@@ -174,7 +188,7 @@ function renderRows() {
     tr.append(title, termCell(row, "amount"), termCell(row, "deadline"), proposalCell(row));
     return tr;
   }));
-  byId("counts").textContent = `Договоры: ${visible.length} из ${state.report.rows.length} · Файлы: ${state.report.documents.length}`;
+  byId("counts").textContent = `Показано ${visible.length} из ${state.report.rows.length}`;
   const noRows = byId("no-rows");
   noRows.hidden = visible.length > 0;
   noRows.textContent = filterOn && !before ? "Укажите дату для фильтра." :
@@ -194,10 +208,10 @@ function renderDocuments() {
   byId("document-items").replaceChildren(...report.documents.map(doc => {
     const row = element("li");
     const name = doc.startSource
-      ? button(doc.name, "file-link", () => openSource(
+      ? evidenceButton(doc.name, "file-link",
         [doc.statusSource, doc.effectiveSource, doc.startSource], documentLabels[doc.kind],
         unlinked.has(doc.key) ? "Связанный договор не найден или номер неоднозначен." : statusLabels[doc.status]
-      )) : element("span", "file-name", doc.name);
+      ) : element("span", "file-name", doc.name);
     const meta = element("span", "muted", doc.id ? `${documentLabels[doc.kind]} · ${doc.id}` : documentLabels[doc.kind]);
     const status = unlinked.has(doc.key) ? "Требуется проверка связи" : statusLabels[doc.status];
     const badge = element("span", `badge ${unlinked.has(doc.key) ? "review" : doc.status}`, status);
