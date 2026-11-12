@@ -150,3 +150,18 @@ test("пропуск пункта отличается от неоднознач
     assert.equal(read([unclear], "deadline").state, "review");
   }
 });
+
+test("срок с условием оплаты требует проверки", () => {
+  const conditional = { ...base, text: base.text.replace("15.04.2026.", "15.04.2026 при условии полной предоплаты.") };
+  const term = read([conditional], "deadline");
+  assert.equal(term.state, "review");
+  assert.equal(term.value, null);
+  assert.ok(term.sources.length);
+});
+
+test("оговорка об остальных условиях не скрывает новый срок", () => {
+  const explicit = { ...amendment, text: amendment.text.replace("30.04.2026».", "30.04.2026; прочие условия остаются без изменений».") };
+  const term = read([base, explicit], "deadline");
+  assert.equal(term.value, "2026-04-30");
+  assert.equal(term.amended, true);
+});

@@ -56,8 +56,9 @@ main.shell { padding-bottom: 48px; }
 .intro { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin: 32px 0 24px; }
 h1 { font: 400 clamp(32px, 3.4vw, 48px)/1.12 var(--serif); letter-spacing: -.02em; }
 .intro p { margin-top: 8px; color: var(--secondary); }
-.upload-area { flex: none; position: relative; display: flex; flex-wrap: wrap; gap: 8px; max-width: 100%; }
-.upload-area p { position: absolute; top: 100%; inset-inline-end: 0; margin: 4px 0 0; color: var(--secondary); font-size: 12px; text-align: end; }
+.upload-area { flex: none; display: grid; grid-template-columns: repeat(2, max-content); gap: 4px 8px; max-width: 100%; }
+.upload-area p { grid-column: 1 / -1; max-width: 276px; margin: 0; color: var(--secondary); font-size: 12px; text-align: end; }
+.upload-area p:empty { display: none; }
 .primary, .secondary {
   min-height: 44px;
   padding: 8px 16px;
@@ -79,6 +80,8 @@ h1 { font: 400 clamp(32px, 3.4vw, 48px)/1.12 var(--serif); letter-spacing: -.02e
   border-radius: 12px;
   background: var(--surface);
 }
+.workspace:has(.evidence[hidden]) { grid-template-columns: minmax(0, 1fr); }
+.workspace:has(.evidence[hidden]) .terms { grid-column: 1 / -1; }
 .terms, .evidence { min-width: 0; }
 .terms { grid-area: 1 / 1; }
 .evidence { grid-area: 1 / 2 / span 2; border-inline-start: 1px solid var(--line); }
@@ -101,8 +104,8 @@ input[type="date"], input[type="search"] {
 input[type="date"] { width: 144px; font-variant-numeric: tabular-nums; }
 input:disabled { border-color: var(--line); background: var(--wash); color: var(--muted); opacity: 1; }
 input::placeholder { color: var(--muted); }
-.check { display: flex; align-items: center; gap: 4px; }
-.check input { margin: 0; accent-color: var(--ink); }
+.check { display: flex; align-items: center; gap: 4px; min-height: 24px; }
+.check input { margin: 0; width: 16px; height: 16px; accent-color: var(--ink); }
 .filters { display: flex; flex-wrap: wrap; align-items: end; gap: 12px 20px; padding: 12px 24px; border-bottom: 1px solid var(--line); }
 .search { width: min(100%, 272px); }
 .notice {
@@ -114,6 +117,7 @@ input::placeholder { color: var(--muted); }
   font-size: 13px;
   overflow-wrap: anywhere;
 }
+.notice ul { margin: 4px 0 0; padding-inline-start: 20px; }
 
 .empty, .source-empty { padding: 24px; }
 .empty { min-height: 168px; }
@@ -126,7 +130,7 @@ input::placeholder { color: var(--muted); }
 table { border-collapse: collapse; width: 100%; text-align: start; }
 thead { background: var(--wash); color: var(--secondary); font-size: 12px; }
 thead th { padding: 12px; text-align: start; font-weight: 500; }
-td, tbody th { padding: 16px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+td, tbody th { padding: 16px 12px; border-bottom: 1px solid var(--line); vertical-align: top; overflow-wrap: anywhere; }
 tbody th { text-align: start; }
 tbody tr:last-child > * { border-bottom: 0; }
 tbody tr:has(button[aria-pressed="true"]) { background: var(--wash); }
@@ -135,9 +139,11 @@ tr > :last-child { padding-inline-end: 24px; width: 32%; }
 .contract strong, .contract span, .term-detail { display: block; }
 .contract strong { font-size: 15px; font-weight: 600; font-variant-numeric: tabular-nums; }
 .contract span, .term-detail { margin-top: 4px; color: var(--secondary); font-size: 13px; font-weight: 400; }
+.term-detail { font-size: 12px; }
 .value-heading, .term-cell { text-align: end; }
 .term-cell { min-width: 104px; }
-.term-link, .proposal-link, .proposal-value, .file-link, .jump {
+.term-link, .proposal-link, .proposal-value, .file-link, .jump, .back-link {
+  min-height: 24px;
   padding: 0;
   border: 0;
   border-radius: 4px;
@@ -178,10 +184,14 @@ blockquote {
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
-.jump { margin-top: 12px; color: var(--accent); font-size: 13px; font-weight: 500; }
+.jump, .back-link { color: var(--accent); font-size: 13px; font-weight: 500; }
+.jump { margin-top: 12px; }
+.back-link { min-height: 32px; }
+#evidence-title { scroll-margin-top: 16px; }
 .source-options:empty { display: none; }
 .source-options { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 12px; }
 .source-option {
+  min-height: 24px;
   padding: 4px 8px;
   border: 1px solid var(--line);
   border-radius: 4px;
@@ -222,10 +232,13 @@ blockquote {
 @media (max-width: 680px) {
   .shell { width: calc(100% - 24px); }
   .intro { flex-direction: column; align-items: flex-start; gap: 16px; margin-top: 24px; }
-  .upload-area p { inset-inline: 0; text-align: start; }
-  .privacy { display: none; }
+  .upload-area p { text-align: start; }
+  .privacy { max-width: 45%; text-align: end; }
   .topbar-inner { min-height: 48px; }
   .card-heading, .filters, .source-context, .empty, .source-empty, .original-heading { padding-inline: 16px; }
+  .filters { display: grid; grid-template-columns: minmax(0, 1fr) 128px; gap: 8px; }
+  .search, .search input, .deadline-filter input[type="date"] { width: 100%; }
+  .deadline-filter { min-width: 0; }
   .card-heading { gap: 8px; }
   .card-heading h2 { font-size: 18px; }
   .notice { margin-inline: 16px; }

@@ -5,15 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light">
   <title>Semantic TextNavigator · Проверка договоров</title>
-  <link rel="stylesheet" href="styles.css?v=2">
-  <script defer src="navigator.js"></script>
-  <script defer src="app.js?v=2"></script>
+  <link rel="stylesheet" href="styles.css?v=3">
+  <script defer src="navigator.js?v=3"></script>
+  <script defer src="app.js?v=3"></script>
 </head>
 <body>
   <header class="topbar">
     <div class="shell topbar-inner">
       <div class="brand">Semantic TextNavigator</div>
-      <span class="privacy">Файлы обрабатываются в браузере</span>
+      <span class="privacy">Ваши файлы остаются в браузере</span>
     </div>
   </header>
 
@@ -34,29 +34,29 @@
     <div class="workspace">
       <section class="terms" aria-labelledby="terms-title">
         <div class="card-heading">
-          <div><h2 id="terms-title">Реестр договоров</h2><p id="counts" role="status">Комплект не загружен</p></div>
+          <div><h2 id="terms-title" tabindex="-1">Реестр договоров</h2><p id="counts" role="status" hidden></p></div>
           <label class="date-control">Дата проверки
             <input type="date" id="as-of" value="2026-03-10" min="0001-01-01" max="9999-12-31" required>
           </label>
         </div>
-        <div id="errors" class="notice" hidden></div>
+        <div id="errors" class="notice" hidden><p id="errors-title"></p><ul id="errors-list"></ul></div>
         <div id="empty" class="empty">
           <h3>Загрузите комплект документов</h3>
           <p>Выберите несколько TXT-файлов в кодировке UTF-8.<br><span id="example-hint">Учебный комплект находится в папке <code>documents</code>.</span></p>
         </div>
         <div id="results" hidden>
-          <div class="filters">
+          <div id="filters" class="filters">
             <label class="search">Договор или поставщик
-              <input type="search" id="search" placeholder="Номер или название">
+              <input type="search" id="search">
             </label>
             <div class="deadline-filter">
               <label class="check"><input type="checkbox" id="filter-on"> Поставка раньше</label>
-              <input type="date" id="before" value="2026-04-01" min="0001-01-01" max="9999-12-31" aria-label="Поставка раньше этой даты" disabled>
+              <input type="date" id="before" value="2026-04-01" min="0001-01-01" max="9999-12-31" aria-label="Поставка раньше этой даты" required disabled>
             </div>
           </div>
           <p class="notice" id="document-issues" role="status" hidden></p>
           <p class="notice" id="review-summary" role="status" hidden></p>
-          <div class="table-region" tabindex="0" role="region" aria-label="Таблица условий договоров">
+          <div id="contract-table" class="table-region" role="region" aria-label="Таблица условий договоров">
             <table role="table">
               <thead role="rowgroup"><tr role="row">
                 <th scope="col" role="columnheader">Договор и поставщик</th>
@@ -71,8 +71,11 @@
         </div>
       </section>
 
-      <aside class="evidence" aria-labelledby="evidence-title">
-        <div class="card-heading"><h2 id="evidence-title" tabindex="-1">Первоисточник</h2></div>
+      <aside id="evidence" class="evidence" aria-labelledby="evidence-title" hidden>
+        <div class="card-heading">
+          <h2 id="evidence-title" tabindex="-1">Первоисточник</h2>
+          <button type="button" class="back-link" id="source-back" hidden>Назад к выбору</button>
+        </div>
         <div id="source-empty" class="source-empty">
           <p>Нажмите сумму, срок или предложение в реестре, чтобы сверить цитату с документом.</p>
         </div>
@@ -80,8 +83,8 @@
           <div class="source-context">
             <p id="source-topic" class="source-topic"></p>
             <p id="source-note" class="source-note" hidden></p>
-            <div id="source-options" class="source-options"></div>
-            <div class="source-meta"><strong id="source-name"></strong><span id="source-lines"></span></div>
+            <div id="source-options" class="source-options" role="group" aria-label="Фрагменты для сверки"></div>
+            <div class="source-meta" aria-live="polite"><strong id="source-name"></strong><span id="source-lines"></span></div>
             <blockquote id="source-quote"></blockquote>
             <button type="button" class="jump" id="jump">Перейти к абзацу</button>
           </div>

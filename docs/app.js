@@ -45,6 +45,7 @@ function clearSource() {
   state.selection = null;
   byId("source").hidden = true;
   byId("source-empty").hidden = false;
+  byId("source-back").hidden = true;
   state.currentBlock = null;
 }
 
@@ -78,6 +79,7 @@ function openSource(refs, topic, note = "") {
   byId("source-note").textContent = note;
   byId("source-empty").hidden = true;
   byId("source").hidden = false;
+  byId("source-back").hidden = false;
   const options = byId("source-options");
   const controls = choices.length > 1 ? choices.map((ref, index) => {
     const doc = state.report.documents[ref.doc];
@@ -94,7 +96,9 @@ function openSource(refs, topic, note = "") {
   const heading = byId("evidence-title");
   heading.focus({ preventScroll: true });
   const rect = heading.getBoundingClientRect();
-  if (rect.top < 0 || rect.bottom > window.innerHeight) heading.scrollIntoView({ block: "start" });
+  if (window.matchMedia("(max-width: 1040px)").matches || rect.top < 0 || rect.bottom > window.innerHeight) {
+    heading.scrollIntoView({ block: "start" });
+  }
 }
 
 function evidenceButton(label, className, refs, topic, note = "") {
@@ -131,7 +135,7 @@ function termCell(row, name) {
       `${row.id} · ${fieldLabels[name]}`, note);
     control.setAttribute("aria-label", `${row.id}, ${fieldLabels[name].toLowerCase()}: ${label}. Открыть источник`);
     cell.append(control);
-    if (term.amended) cell.append(element("span", "term-detail", "По допсоглашению"));
+    if (term.amended) cell.append(element("span", "term-detail", "Допсоглашение"));
   } else {
     cell.append(element("span", "missing", label));
   }
@@ -188,7 +192,10 @@ function renderRows() {
     tr.append(title, termCell(row, "amount"), termCell(row, "deadline"), proposalCell(row));
     return tr;
   }));
-  byId("counts").textContent = `Показано ${visible.length} из ${state.report.rows.length}`;
+  byId("counts").textContent = state.report.rows.length ? `Показано ${visible.length} из ${state.report.rows.length}` : "";
+  byId("counts").hidden = !state.report.rows.length;
+  byId("filters").hidden = !state.report.rows.length;
+  byId("contract-table").hidden = !visible.length;
   const noRows = byId("no-rows");
   noRows.hidden = visible.length > 0;
   noRows.textContent = filterOn && !before ? "Укажите дату для фильтра." :
@@ -226,10 +233,12 @@ function refresh() {
   const canAnalyze = state.files.length && input.validity.valid;
   byId("empty").hidden = Boolean(state.files.length);
   byId("results").hidden = !canAnalyze;
+  byId("evidence").hidden = !canAnalyze;
   byId("document-list").hidden = !canAnalyze;
   if (!canAnalyze) {
     state.report = null;
-    byId("counts").textContent = state.files.length ? "Укажите корректную дату проверки" : "Комплект не загружен";
+    byId("counts").textContent = state.files.length ? "Укажите корректную дату проверки" : "";
+    byId("counts").hidden = !state.files.length;
     return;
   }
   state.report = TextNavigator.analyze(state.files, input.value);
@@ -238,11 +247,17 @@ function refresh() {
 }
 
 function showFiles(files, errors = []) {
+  const keepPrevious = !files.length && state.files.length > 0;
+  byId("errors").hidden = !errors.length;
+  byId("errors-title").textContent = keepPrevious
+    ? "Не удалось загрузить новый комплект. Показан предыдущий."
+    : files.length ? "Эти файлы не учтены при сверке" : "Не удалось прочитать выбранные файлы";
+  byId("errors-list").replaceChildren(...errors.map(error => element("li", "", error)));
+  byId("upload-status").textContent = files.length
+    ? `Загружено файлов: ${files.length}${errors.length ? ` · С ошибками: ${errors.length}` : ""}`
+    : "Файлы не загружены";
+  if (keepPrevious) return;
   state.files = files;
-  const errorBox = byId("errors");
-  errorBox.hidden = !errors.length;
-  errorBox.textContent = errors.length ? "Эти файлы не учтены. " + errors.join(" · ") : "";
-  byId("upload-status").textContent = files.length ? `Загружено файлов: ${files.length}` : "Файлы не загружены";
   byId("search").value = "";
   byId("filter-on").checked = false;
   byId("document-list").open = false;
@@ -301,6 +316,11 @@ byId("as-of").addEventListener("input", refresh);
 byId("search").addEventListener("input", renderRows);
 byId("filter-on").addEventListener("change", renderRows);
 byId("before").addEventListener("input", renderRows);
+byId("source-back").addEventListener("click", () => {
+  const selected = state.selection?.control;
+  const target = selected?.isConnected && selected.getClientRects().length ? selected : byId("terms-title");
+  target.focus();
+});
 byId("jump").addEventListener("click", () => {
   if (!state.currentBlock) return;
   state.currentBlock.focus({ preventScroll: true });

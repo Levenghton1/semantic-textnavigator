@@ -21,6 +21,8 @@ const TextNavigator = (() => {
   const missingAmount = /определяется спецификацией|числовое значение стоимости.{0,65}не указано|(?:стоимость|сумма).{0,50}не указана/iu;
   const missingDeadline = /срок поставки.{0,55}не (?:установлен|указан|определ[её]н)/iu;
   const unchanged = /без изменений|не изменяет(?:ся)?|не является (?:согласованной стоимостью|сроком поставки)/iu;
+  const otherTermsUnchanged = /[.;]\s*(?:остальные|прочие|иные) условия(?: договора)? остаются без изменений[»”"]?[.!]?$/iu;
+  const conditionalDeadline = /при (?:условии|поступлении|получении|наступлении)|в случае|в зависимости от/iu;
   const includedInTotal = /входит\s+в\s+(?:общую|итоговую)\s+(?:стоимость|сумму)/iu;
   const alternatives = new RegExp("(?:или|либо|в зависимости от)\\s+(?:до\\s+)?(?:" + dateToken +
     "|[0-9][0-9 ,.]*\\s+(?:руб|₽))", "iu");
@@ -72,14 +74,14 @@ const TextNavigator = (() => {
     const unclear = [];
     const missing = [];
     for (const block of doc.blocks.slice(1)) {
-      const line = block.text.trim().replace(/\s+/gu, " ");
+      const line = block.text.trim().replace(/\s+/gu, " ").replace(otherTermsUnchanged, "");
       if (!hint.test(line) || unchanged.test(line)) continue;
       const ref = source(doc, block);
       if (absent.test(line)) {
         missing.push(ref);
         continue;
       }
-      if (alternatives.test(line)) {
+      if (alternatives.test(line) || (!isAmount && conditionalDeadline.test(line))) {
         unclear.push(ref);
         continue;
       }
